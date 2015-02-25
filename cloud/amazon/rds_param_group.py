@@ -179,8 +179,16 @@ def set_parameter(param, value, immediate):
             converted_value = value in TRUE_VALUES
         else:
             converted_value = bool(value)
+    
+    try:
+        param.value = converted_value
+    except ValueError:
+        # may be an int based on a variable, so pass through
+        if param.type == 'integer':
+            param._value = converted_value
+        else:
+           raise
 
-    param.value = converted_value
     param.apply(immediate)
 
 def modify_group(group, params, immediate=False):
@@ -209,7 +217,7 @@ def modify_group(group, params, immediate=False):
                 if not param.is_modifiable:
                     raise NotModifiableError('Parameter %s is not modifiable.' % key)
 
-                changed[key] = {'old': param.value, 'new': new_value}
+                changed[key] = {'old': old_value, 'new': new_value}
                 
                 set_parameter(param, new_value, immediate)
 
